@@ -1,0 +1,43 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather</title>
+    <link rel = "stylesheet" type = "text/css" href = "weather.css">
+</head>
+<body>
+
+    <div class="weather" id="weatherWidget">
+        <div class="weather-loc"></div>
+        <div class="weather-humidity"></div>
+        <div class="weather-temp"></div>
+        <img class="weather-tomorrow" />
+        <img class="weather-dayaftertomorrow" />
+    </div>
+    
+    <button id = "update">Update</button>
+
+    <script>
+        function fetchWeather() {
+            const pathToPhpFile = 'https://classes.engineering.wustl.edu/cse330/content/weather_json.php';
+            fetch(pathToPhpFile, {
+                method: "GET",
+            })
+            .then(res => res.json())
+            .then(function(response) {
+                document.getElementsByClassName("weather-loc")[0].innerHTML = "<strong>" + response.location.city + "</strong>" + ", " + response.location.state;
+                document.getElementsByClassName("weather-humidity")[0].textContent = response.atmosphere.humidity;
+                document.getElementsByClassName("weather-temp")[0].textContent = response.current.temp;
+                document.getElementsByClassName("weather-tomorrow")[0].src = "http://us.yimg.com/i/us/nws/weather/gr/" + response.tomorrow.code + "ds.png";
+                document.getElementsByClassName("weather-dayaftertomorrow")[0].src = "http://us.yimg.com/i/us/nws/weather/gr/" + response.dayafter.code + "ds.png"
+            })
+            .catch(error => console.error('Error:',error))
+        }
+    
+        document.addEventListener("DOMContentLoaded", fetchWeather, false);
+        document.getElementById("update").addEventListener("click", fetchWeather, false);
+
+    </script>
+
+</body>
+</html>

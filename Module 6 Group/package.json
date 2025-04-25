@@ -1,0 +1,24 @@
+{
+  "dependencies": {
+    "mime": "~2.4.6",
+    "socket.io": "~1.0.0"
+  },
+  "name": "package",
+  "version": "1.0.0",
+  "description": "",
+  "main": "chat-server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node chat-server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cse330-spring-2025/module6b-group-module6-525421-518759.git"
+  },
+  "author": "Vincent Chen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cse330-spring-2025/module6b-group-module6-525421-518759/issues"
+  },
+  "homepage": "https://github.com/cse330-spring-2025/module6b-group-module6-525421-518759#readme"
+}

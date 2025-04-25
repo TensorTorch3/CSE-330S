@@ -1,0 +1,159 @@
+
+/* body spacing and grid display */
+body {
+    font-family: Arial, sans-serif;
+    display: grid;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    grid-template-columns: 1fr 4fr 1fr;
+    grid-template-rows: 0.5fr 2fr 2fr 2fr 2fr;
+    background-color: white;
+    justify-items: center;
+}
+
+/* background header */
+header {
+    grid-column: 2;
+    grid-row: 1;
+    text-align: center;
+    background-color: lightblue;
+    width: 100%;
+    padding: 15px;
+    border-radius: 20px;
+    margin-top: 10px;
+}
+/* h1 elelment selector */
+h1 {
+    font-size: 26px;
+    color: black;
+}
+
+/* form division flexbox and padding */
+.formDiv {
+    grid-column: 2;
+    width: 100%;
+    max-width: 450px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background-color: lightgray;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    margin-top: 10px;
+}
+/* h2 edits and margins */
+h2 {
+    margin-bottom: 20px;
+    font-size: 22px;
+    color: #333;
+}
+/* display of form settings  */
+.formself {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    align-items: center;
+    text-align: center;
+}
+
+/* form setting text  */
+input[type="text"]{
+    background: lightblue;
+    margin-top: 10px;
+    color: black;
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+    width: 100%;
+    max-width: 200px;
+    text-align: center;
+}
+/* login module grid colum 2 */
+#login{
+    grid-column: 2;
+}
+/* create new user grid column 2 and row 3 */
+#newUserDiv{
+    grid-row: 3;
+    grid-column: 2;
+}
+
+/*  */
+#loginDiv{
+    grid-row: 2;
+    grid-column: 2;
+}
+/* file and submit element styling form */
+input[type="file"],
+input[type="submit"] {
+    color: black;
+    background-color: lightblue;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    width: 100%;
+    max-width: 200px;
+}
+/* file item stylging */
+.fileItem {
+    margin: 10px 0;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+/* buttonDiv */
+.buttonDiv{
+    display:flex;
+    grid-column: 2;
+    grid-row: 3;
+    
+    align-items:center;
+}
+
+/*  */
+.loginButton, .mainPagebutton{
+    color: black;
+    background-color: lightblue;
+    border: none;
+    border-radius: 20px;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+    max-width: 200px;
+    text-decoration: none; 
+    
+}
+/* css for button color */
+
+a {
+  text-decoration: none;
+    color:black;
+}
+
+/*  */
+.messageWording{
+    font-size:17px;
+    background-color:lightgray;
+    padding: 12px 20px;
+    border-radius: 20px;
+    text-align:center;
+
+}
+
+.siteText{
+    grid-column: 2;
+    grid-row: 2;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    
+
+}
+

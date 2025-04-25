@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href= "./styles.css">
+    <title>Login</title>
+</head>
+<body>
+    
+    <h1 id="login">Welcome to the Server by Aidan and Vincent</h1>
+    
+    <!-- Form in order to log in -->
+    <div id="loginDiv" class="formDiv">
+        <form class="formself" action = "uservalidation.php" method = "get">
+            <h2>Existing User Login</h2>
+            <label>Username:  <input type = "text" name = "user"></label>
+            <input type = "submit" value = "Login">
+        </form>
+    </div>
+
+    <!-- Form to create new user -->
+    <div id="newUserDiv" class="formDiv">
+        <form class="formself" action = "adduser.php" method = "get">
+            <h2>Create New User</h2>
+            <label>Username:  <input type = "text" name = "user1"></label>
+            <input type = "submit" value = "Add User">
+        </form>
+    </div>
+
+    <!-- Form to delete user -->
+    <div class = "formDiv">
+        <form class = "formself" action = "deleteuser.php" method = "get">
+            <h2> Delete User </h2>
+            <label>Username: <input type = "text" name = "user2"></label>
+            <input type = "submit" value = "Delete User">
+        </form>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,11 @@
+MariaDB [wustl]> select students.first_name, students.last_name, students.email_address, avg(grade) as avg_grade from grades
+    -> join students on (grades.student_id = students.id)
+    -> group by student_id
+    -> having avg_grade < 50;
++------------+-----------+------------------+-----------+
+| first_name | last_name | email_address    | avg_grade |
++------------+-----------+------------------+-----------+
+| Ben        | Harper    | bharper@ffym.com | 43.500000 |
+| Tim        | Armstrong | tArmz@rancid.com | 45.000000 |
++------------+-----------+------------------+-----------+
+2 rows in set (0.000 sec)

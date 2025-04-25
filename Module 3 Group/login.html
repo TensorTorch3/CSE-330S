@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href= "./styles.css">
+    <title>Login</title>
+</head>
+<body>
+    
+    <h1 id="login">Welcome to the Server by Aidan and Vincent</h1>
+    
+    <!-- Form in order to log in -->
+    <div id="loginDiv" class="formDiv">
+        <form class="formself" action = "uservalidation.php" method = "post">
+            <h2>Existing User Login</h2>
+            <label>Username:  <input type = "text" name = "user"></label>
+            <label>Password: <input type = "password" name = "password"></label>
+            <!-- <input type="hidden" name="token" value="<?php echo $_SESSION['token'];?>" /> -->
+            <input type = "submit" value = "Login">
+        </form>
+    </div>
+
+    <!-- Form to create new user -->
+    <div id="newUserDiv" class="formDiv">
+        <form class="formself" action = "adduser.php" method = "post">
+            <h2>Create New User</h2>
+            <label>Username:  <input type = "text" name = "user1"></label>
+            <label>Password: <input type = "password" name = "password1">
+            <input type = "submit" value = "Add User">
+        </form>
+    </div>
+
+    <!-- Form to delete user, we could probably do this as creative portion -->
+    <div class = "formDiv">
+        <form class = "formself" action = "deleteuser.php" method = "post">
+            <h2> Delete User </h2>
+            <label>Username: <input type = "text" name = "user2"></label>
+            <label>Password: <input type = "password" name = "password2"></label>
+            <input type = "submit" value = "Delete User">
+        </form>
+    </div>
+
+</body>
+</html>
+<!--  -->

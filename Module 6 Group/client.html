@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang = "en">
+   <head>
+      <meta charset="UTF-8">
+      <title>Chat Application</title>
+      <script src="/socket.io/socket.io.js"></script>
+      <style>
+         body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+         }
+         
+         h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+         }
+         
+         input, button {
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 4px;
+         }
+         
+         input {
+            border: 1px solid #ddd;
+            width: 250px;
+         }
+         
+         button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+         }
+         
+         button:hover {
+            background-color: #2980b9;
+         }
+         
+         #chatlog {
+            margin-top: 20px;
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: white;
+            border-radius: 4px;
+         }
+         
+         .message {
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            position: relative;
+         }
+         
+         .message-sender {
+            font-weight: bold;
+            margin-bottom: 5px;
+         }
+         
+         .message-content {
+            word-break: break-word;
+         }
+         
+         .message-timestamp {
+            font-size: 0.8em;
+            color: #7f8c8d;
+            position: absolute;
+            right: 10px;
+            top: 8px;
+         }
+         
+         .user-message {
+            background-color: #e8f5fe;
+            border-left: 4px solid #3498db;
+         }
+         
+         .system-message {
+            background-color: #f8f9fa;
+            font-style: italic;
+            color: #7f8c8d;
+            text-align: center;
+         }
+         
+         .private-message {
+            background-color: #fcf8e3;
+            border-left: 4px solid #f39c12;
+         }
+         
+         #user_list {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: white;
+            max-width: 300px;
+         }
+         
+         .user-item {
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+         }
+         
+         .user-item:hover {
+            background-color: #f5f5f5;
+         }
+         
+         .action-btns {
+            display: none;
+         }
+         
+         .user-item:hover .action-btns {
+            display: block;
+         }
+         
+         .action-btn {
+            padding: 2px 5px;
+            font-size: 0.8em;
+            margin-left: 5px;
+         }
+         
+         .kick-btn {
+            background-color: #e74c3c;
+         }
+         
+         .ban-btn {
+            background-color: #c0392b;
+         }
+         
+         .pm-btn {
+            background-color: #f39c12;
+         }
+         
+         .typing-indicator {
+            font-style: italic;
+            color: #7f8c8d;
+            height: 20px;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+         }
+
+         .typing-dots {
+            display: inline-flex;
+            gap: 2px;
+         }
+
+         .dot {
+            width: 6px;
+            height: 6px;
+            background: #95a5a6;
+            border-radius: 50%;
+            animation: bounce 1.5s infinite;
+            opacity: 0.6;
+         }
+
+         .dot:nth-child(2) {
+            animation-delay: 0.2s;
+         }
+
+         .dot:nth-child(3) {
+            animation-delay: 0.4s;
+         }
+
+         @keyframes bounce {
+            0%, 60%, 100% {
+               transform: translateY(0);
+            }
+            30% {
+               transform: translateY(-4px);
+            }
+         }
+         
+         .reaction-btns {
+            margin-top: 5px;
+         }
+         
+         .reaction-btn {
+            background: none;
+            border: none;
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 2px 5px;
+            transition: transform 0.2s;
+         }
+         
+         .reaction-btn:hover {
+            transform: scale(1.2);
+         }
+         
+         .reactions-display {
+            margin-top: 5px;
+            font-size: 0.9em;
+         }
+         
+         .reaction-badge {
+            display: inline-block;
+            background-color: #f1f1f1;
+            border-radius: 10px;
+            padding: 2px 8px;
+            margin-right: 5px;
+            font-size: 0.85em;
+         }
+      </style>
+      <script>
+      var socketio = io.connect();
+      var messageCounter = 0; // Counter to assign unique IDs to messages
+      var currentRoomCreator = null; // Store the current room creator
+      var typingTimer; // Timer to debounce typing events
+      
+      socketio.on("message_to_client", function(data) {
+         messageCounter++;
+         // document.getElementById("chatlog").appendChild(document.createElement("hr"));
+         
+         var messageDiv = document.createElement("div");
+         messageDiv.setAttribute("data-room", data["room"]);
+         messageDiv.setAttribute("data-message-id", "msg-" + messageCounter);
+         messageDiv.className = "message user-message";
+         
+         var senderDiv = document.createElement("div");
+         senderDiv.className = "message-sender";
+         senderDiv.textContent = data["username"];
+         
+         var contentDiv = document.createElement("div");
+         contentDiv.className = "message-content";
+         contentDiv.textContent = data["message"];
+         
+         var timestampDiv = document.createElement("div");
+         timestampDiv.className = "message-timestamp";
+         timestampDiv.textContent = new Date(data["timestamp"]).toLocaleTimeString();
+         
+         var reactionsDiv = document.createElement("div");
+         reactionsDiv.className = "reactions-display";
+         reactionsDiv.id = "reactions-" + messageCounter;
+         
+         var reactionBtnsDiv = document.createElement("div");
+         reactionBtnsDiv.className = "reaction-btns";
+         
+         const reactions = ["👍", "❤️", "😂", "😮", "😢"];
+         reactions.forEach(emoji => {
+            var btn = document.createElement("button");
+            btn.className = "reaction-btn";
+            btn.textContent = emoji;
+            btn.onclick = function() {
+               addReaction("msg-" + messageCounter, emoji);
+            };
+            reactionBtnsDiv.appendChild(btn);
+         });
+         
+         messageDiv.appendChild(senderDiv);
+         messageDiv.appendChild(contentDiv);
+         messageDiv.appendChild(timestampDiv);
+         messageDiv.appendChild(reactionBtnsDiv);
+         messageDiv.appendChild(reactionsDiv);
+         
+         document.getElementById("chatlog").appendChild(messageDiv);
+         
+         // Auto scroll to the bottom
+         document.getElementById("chatlog").scrollTop = document.getElementById("chatlog").scrollHeight;
+      });
+      
+      socketio.on("system_message", function(data) {
+         var messageDiv = document.createElement("div");
+         messageDiv.setAttribute("data-room", data["room"]);
+         messageDiv.className = "message system-message";
+         messageDiv.textContent = data["message"];
+         
+         document.getElementById("chatlog").appendChild(messageDiv);
+         document.getElementById("chatlog").scrollTop = document.getElementById("chatlog").scrollHeight;
+      });
+      
+      socketio.on("private_message_received", function(data) {
+         messageCounter++;
+         // document.getElementById("chatlog").appendChild(document.createElement("hr"));
+         
+         var messageDiv = document.createElement("div");
+         messageDiv.className = "message private-message";
+         messageDiv.setAttribute("data-message-id", "msg-" + messageCounter);
+         messageDiv.setAttribute("data-room", data.room); // Add room attribute
+         
+         var senderDiv = document.createElement("div");
+         senderDiv.className = "message-sender";
+         senderDiv.textContent = "Private from " + data["sender"];
+         
+         var contentDiv = document.createElement("div");
+         contentDiv.className = "message-content";
+         contentDiv.textContent = data["message"];
+         
+         var timestampDiv = document.createElement("div");
+         timestampDiv.className = "message-timestamp";
+         timestampDiv.textContent = new Date(data["timestamp"]).toLocaleTimeString();
+         
+         messageDiv.appendChild(senderDiv);
+         messageDiv.appendChild(contentDiv);
+         messageDiv.appendChild(timestampDiv);
+         
+         document.getElementById("chatlog").appendChild(messageDiv);
+         document.getElementById("chatlog").scrollTop = document.getElementById("chatlog").scrollHeight;
+      });
+      
+      socketio.on("private_message_sent", function(data) {
+         messageCounter++;
+         // document.getElementById("chatlog").appendChild(document.createElement("hr"));
+         
+         var messageDiv = document.createElement("div");
+         messageDiv.className = "message private-message";
+         
+         var senderDiv = document.createElement("div");
+         senderDiv.className = "message-sender";
+         senderDiv.textContent = "Private to " + data["recipient"];
+         
+         var contentDiv = document.createElement("div");
+         contentDiv.className = "message-content";
+         contentDiv.textContent = data["message"];
+         
+         var timestampDiv = document.createElement("div");
+         timestampDiv.className = "message-timestamp";
+         timestampDiv.textContent = new Date(data["timestamp"]).toLocaleTimeString();
+         
+         messageDiv.appendChild(senderDiv);
+         messageDiv.appendChild(contentDiv);
+         messageDiv.appendChild(timestampDiv);
+         
+         document.getElementById("chatlog").appendChild(messageDiv);
+         document.getElementById("chatlog").scrollTop = document.getElementById("chatlog").scrollHeight;
+      });
+      
+      socketio.on("private_message_error", function(data) {
+         alert(data.message);
+      });
+
+      socketio.on("public_room_created", function(data) {
+         // Hide the room creation page and show the message sending page
+         document.getElementById("room_page").appendChild(document.createElement("br"));
+         const button = document.createElement("button");
+         button.textContent = data["room"];
+         button.id = data["room"] + "_btn";
+         button.onclick = function() {
+            joinPublicRoom.call(this);
+         };
+         document.getElementById("room_page").appendChild(button);
+      });
+
+      socketio.on("private_room_created", function(data) {
+         // Hide the room creation page and show the message sending page
+         document.getElementById("room_page").appendChild(document.createElement("br"));
+         const button = document.createElement("button");
+         button.textContent = data["room"];
+         button.id = data["room"] + "_private_btn";
+         button.onclick = function() {
+            joinPrivateRoom.call(this);
+         };
+         document.getElementById("room_page").appendChild(button);
+      });
+
+      socketio.on("room_info", function(data) {
+         currentRoomCreator = data.creator;
+      });
+
+      socketio.on("update_user_list", function(data) {
+         const userList = document.getElementById("user_list_ul");
+         userList.innerHTML = ""; // Clear the current list
+         
+         const currentUsername = document.getElementById("username").value;
+         currentRoomCreator = data.creator;
+
+         // Add each user to the list
+         data.users.forEach(function(username) {
+            const li = document.createElement("li");
+            li.className = "user-item";
+            
+            const nameSpan = document.createElement("span");
+            nameSpan.textContent = username;
+            li.appendChild(nameSpan);
+            
+            // Add action buttons container
+            const actionDiv = document.createElement("div");
+            actionDiv.className = "action-btns";
+            
+            // Private message button for everyone except self
+            if (username !== currentUsername) {
+               const pmBtn = document.createElement("button");
+               pmBtn.className = "action-btn pm-btn";
+               pmBtn.textContent = "PM";
+               pmBtn.onclick = function() {
+                  openPrivateMessage(username);
+               };
+               actionDiv.appendChild(pmBtn);
+            }
+            
+            // Kick and ban buttons only for room creator
+            if (currentUsername === currentRoomCreator && username !== currentUsername) {
+               const kickBtn = document.createElement("button");
+               kickBtn.className = "action-btn kick-btn";
+               kickBtn.textContent = "Kick";
+               kickBtn.onclick = function() {
+                  kickUser(username);
+               };
+               
+               const banBtn = document.createElement("button");
+               banBtn.className = "action-btn ban-btn";
+               banBtn.textContent = "Ban";
+               banBtn.onclick = function() {
+                  banUser(username);
+               };
+               
+               actionDiv.appendChild(kickBtn);
+               actionDiv.appendChild(banBtn);
+            }
+            
+            li.appendChild(actionDiv);
+            userList.appendChild(li);
+         });
+
+         // Show the user list
+         document.getElementById("user_list").style.display = "block";
+      });
+
+      socketio.on("private_room_joined", function(data) {
+         var roomName = data.room;
+         var username = document.getElementById("username").value;
+
+         document.getElementById("send_message_page").setAttribute("data-current-room", roomName);
+         document.getElementById("send_message_page").style.display = "block";
+         document.getElementById("room_page").style.display = "none";
+         document.getElementById("chatlog").style.display = "block";
+         document.getElementById("user_list").style.display = "block";
+
+         // Show only messages for the current room
+         for (const message of document.querySelectorAll("#chatlog .message")) {
+            if (message.getAttribute("data-room") === roomName) {
+               message.style.display = "block";
+            } else {
+               message.style.display = "none";
+            }
+         }
+      });
+
+      socketio.on("private_room_error", function(data) {
+         alert(data.message);
+         document.getElementById("send_message_page").style.display = "none";
+         document.getElementById("chatlog").style.display = "none";
+         document.getElementById("room_page").style.display = "block";
+         document.getElementById("user_list").style.display = "none";
+      });
+      
+      socketio.on("room_join_error", function(data) {
+         alert(data.message);
+         document.getElementById("send_message_page").style.display = "none";
+         document.getElementById("chatlog").style.display = "none";
+         document.getElementById("room_page").style.display = "block";
+         document.getElementById("user_list").style.display = "none";
+      });
+      
+      socketio.on("kicked", function(data) {
+         // First, clear chat messages for this room
+         const messages = document.querySelectorAll("#chatlog .message");
+         messages.forEach(message => {
+            if (message.getAttribute("data-room") === data.room) {
+               message.remove();
+            }
+         });
+         
+         // Show alert
+         alert("You have been kicked from " + data.room + " by " + data.kickedBy);
+         
+         // Reset UI
+         document.getElementById("send_message_page").style.display = "none";
+         document.getElementById("chatlog").style.display = "none";
+         document.getElementById("room_page").style.display = "block";
+         document.getElementById("user_list").style.display = "none";
+         
+         // Clear user list
+         document.getElementById("user_list_ul").innerHTML = "";
+      });
+      
+      socketio.on("banned", function(data) {
+         // First, clear chat messages for this room
+         const messages = document.querySelectorAll("#chatlog .message");
+         messages.forEach(message => {
+            if (message.getAttribute("data-room") === data.room) {
+               message.remove();
+            }
+         });
+         
+         // Show alert
+         alert("You have been banned from " + data.room + " by " + data.bannedBy);
+         
+         // Reset UI
+         document.getElementById("send_message_page").style.display = "none";
+         document.getElementById("chatlog").style.display = "none";
+         document.getElementById("room_page").style.display = "block";
+         document.getElementById("user_list").style.display = "none";
+         
+         // Clear user list
+         document.getElementById("user_list_ul").innerHTML = "";
+      });
+      
+      socketio.on("action_error", function(data) {
+         alert(data.message);
+      });
+      
+      socketio.on("typing_indicator", function(data) {
+         const typingDiv = document.getElementById("typing_indicator");
+         
+         if (data.users && data.users.length > 0) {
+            if (data.users.length === 1) {
+               typingDiv.textContent = data.users[0] + " is typing...";
+            } else if (data.users.length === 2) {
+               typingDiv.textContent = data.users.join(" and ") + " are typing...";
+            } else {
+               typingDiv.textContent = "Multiple people are typing...";
+            }
+         } else {
+            typingDiv.textContent = "";
+         }
+      });
+      
+      socketio.on("message_reaction", function(data) {
+         const messageId = data.messageId;
+         const reaction = data.reaction;
+         const username = data.username;
+         
+         const reactionsDiv = document.getElementById("reactions-" + messageId.replace("msg-", ""));
+         
+         if (reactionsDiv) {
+            // Check if reaction already exists
+            let reactionBadge = Array.from(reactionsDiv.children).find(child => 
+               child.getAttribute("data-reaction") === reaction);
+            
+            if (reactionBadge) {
+               // Update existing badge
+               let count = parseInt(reactionBadge.getAttribute("data-count")) + 1;
+               reactionBadge.setAttribute("data-count", count);
+               reactionBadge.textContent = reaction + " " + count;
+            } else {
+               // Create new badge
+               reactionBadge = document.createElement("span");
+               reactionBadge.className = "reaction-badge";
+               reactionBadge.setAttribute("data-reaction", reaction);
+               reactionBadge.setAttribute("data-count", "1");
+               reactionBadge.textContent = reaction + " 1";
+               reactionsDiv.appendChild(reactionBadge);
+            }
+         }
+      });
+
+      function joinPublicRoom() {
+         var roomName = this.id.split("_")[0];
+         var username = document.getElementById("username").value;
+
+         document.getElementById("send_message_page").setAttribute("data-current-room", roomName);
+         document.getElementById("send_message_page").style.display = "block";
+         document.getElementById("room_page").style.display = "none";
+         document.getElementById("chatlog").style.display = "block";
+         document.getElementById("user_list").style.display = "block";
+
+         // Show only messages for the current room
+         for (const message of document.querySelectorAll("#chatlog .message")) {
+            if (message.getAttribute("data-room") === roomName) {
+               message.style.display = "block";
+            } else {
+               message.style.display = "none";
+            }
+         }
+
+         socketio.emit("join_room", { room: roomName, username: username });
+      }
+
+      function joinPrivateRoom() {
+         var roomName = this.id.split("_")[0];
+         var password = prompt("Enter the password for the private room:");
+         var username = document.getElementById("username").value;
+
+         socketio.emit("join_private_room", { room: roomName, password: password, username: username });
+      }
+
+      function sendMessage(element) {
+         var username = document.getElementById("username").value;
+         var msg = document.getElementById("message").value;
+         var currentRoom = element.closest("#send_message_page").getAttribute("data-current-room");
+         
+         // Don't send empty messages
+         if (!msg.trim()) return;
+         
+         socketio.emit("message_to_server", { 
+            username: username, 
+            message: msg, 
+            room: currentRoom 
+         });
+         
+         // Clear message field
+         document.getElementById("message").value = "";
+         
+         // Also stop typing indicator
+         socketio.emit("typing", {
+            username: username,
+            room: currentRoom,
+            isTyping: false
+         });
+      }
+      
+      function openPrivateMessage(recipient) {
+         var message = prompt("Send private message to " + recipient + ":");
+         if (message && message.trim() !== "") {
+            var username = document.getElementById("username").value;
+            var currentRoom = document.getElementById("send_message_page").getAttribute("data-current-room");
+            
+            // Add data-room attribute to private messages
+            socketio.emit("private_message", {
+               sender: username,
+               recipient: recipient,
+               message: message,
+               room: currentRoom
+            });
+         }
+      }
+      
+      function kickUser(username) {
+         if (confirm("Are you sure you want to kick " + username + " from this room?")) {
+            var currentUsername = document.getElementById("username").value;
+            var currentRoom = document.getElementById("send_message_page").getAttribute("data-current-room");
+            
+            socketio.emit("kick_user", {
+               user: username,
+               room: currentRoom,
+               kickedBy: currentUsername
+            });
+         }
+      }
+      
+      function banUser(username) {
+         if (confirm("Are you sure you want to ban " + username + " from this room? They won't be able to rejoin.")) {
+            var currentUsername = document.getElementById("username").value;
+            var currentRoom = document.getElementById("send_message_page").getAttribute("data-current-room");
+            
+            socketio.emit("ban_user", {
+               user: username,
+               room: currentRoom,
+               bannedBy: currentUsername
+            });
+         }
+      }
+      
+      function handleTyping() {
+         var username = document.getElementById("username").value;
+         var currentRoom = document.getElementById("send_message_page").getAttribute("data-current-room");
+         var messageField = document.getElementById("message");
+         
+         // Clear any existing timers
+         clearTimeout(typingTimer);
+         
+         if (messageField.value.trim() !== "") {
+            // User is typing
+            socketio.emit("typing", {
+               username: username,
+               room: currentRoom,
+               isTyping: true
+            });
+            
+            // Set a timer to stop the typing indicator after 2 seconds of inactivity
+            typingTimer = setTimeout(function() {
+               socketio.emit("typing", {
+                  username: username,
+                  room: currentRoom,
+                  isTyping: false
+               });
+            }, 2000);
+         } else {
+            // Field is empty, stop typing indicator
+            socketio.emit("typing", {
+               username: username,
+               room: currentRoom,
+               isTyping: false
+            });
+         }
+      }
+      
+      function addReaction(messageId, reaction) {
+         var username = document.getElementById("username").value;
+         var currentRoom = document.getElementById("send_message_page").getAttribute("data-current-room");
+         
+         socketio.emit("add_reaction", {
+            messageId: messageId,
+            reaction: reaction,
+            username: username,
+            room: currentRoom
+         });
+      }
+
+      function logIn() {
+         if (!document.getElementById("username").value.trim()) {
+            alert("Please enter a username");
+            return;
+         }
+         document.getElementById("username_page").style.display = "none";
+         document.getElementById("room_page").style.display = "block";
+      }
+
+      function createPublicRoom() {
+         var roomName = document.getElementById("create_public_room_name").value;
+         var username = document.getElementById("username").value;
+         if (!roomName) {
+            alert("Please enter a room name");
+            return;
+         }
+         socketio.emit("create_public_room", {room: roomName, username: username});
+      }
+
+      function createPrivateRoom() {
+         var roomName = document.getElementById("create_private_room_name").value;
+         var password = document.getElementById("create_room_password").value;
+         var username = document.getElementById("username").value;
+         if (!roomName || !password) {
+            alert("Please enter both room name and password");
+            return;
+         }
+         socketio.emit("create_private_room", {room: roomName, password: password, username: username});
+      }
+
+      function leaveRoom(element) {
+         var username = document.getElementById("username").value;
+         var currentRoom = element.closest("#send_message_page").getAttribute("data-current-room");
+         
+         socketio.emit("leave_room", { room: currentRoom, username: username });
+
+         document.getElementById("send_message_page").style.display = "none";
+         document.getElementById("chatlog").style.display = "none";
+         document.getElementById("room_page").style.display = "block";
+         document.getElementById("user_list").style.display = "none";
+      }
+      </script>
+   </head>
+
+   <body>
+      <div id="username_page">
+         <h2>Set Username</h2>
+         <input type="text" id="username" placeholder="Enter a username">
+         <button onclick="logIn()" id="username_btn">Set Username</button>
+      </div>
+
+      <div id="room_page" style="display: none;">
+         <h2>Create Public Room</h2>
+         <input type="text" id="create_public_room_name" placeholder="Enter a room name">
+         <button onclick="createPublicRoom()" id="create_room_btn">Create Room</button>
+         <h2>Create Private Room</h2>
+         <input type="text" id="create_private_room_name" placeholder="Enter a room name">
+         <input type="password" id="create_room_password" placeholder="Enter a password">
+         <button onclick="createPrivateRoom()" id="create_private_room_btn">Create Room</button>
+         <h2>Join Room</h2>
+      </div>
+
+      <div id="user_list" style="display: none;">
+         <h3>Users in Room:</h3>
+         <ul id="user_list_ul"></ul>
+      </div>
+
+      <div id="send_message_page" style="display: none;">
+         <h2>Send Message</h2>
+         <input type="text" id="message" placeholder="Enter a message" onkeyup="handleTyping()">
+         <button onclick="sendMessage(this)" id="message_btn">Send</button>
+         <button onclick="leaveRoom(this)" id="back_btn">Leave Room</button>
+         <div id="typing_indicator" class="typing-indicator"></div>
+      </div>
+
+      <div id="chatlog" style="display: none;"></div>
+      
+   </body>
+</html>

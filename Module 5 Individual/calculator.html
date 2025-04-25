@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+</head>
+<body>
+
+    <form>
+        <p>
+        <label>First Number: <input type = "number" name = "num" id = "num1" step = "any"></label>
+        </p>
+        <p>
+        <label>Operator: </label>
+        <input type = "radio" name = "operator" value = "+" id = "+input"> <label for="+input">+</label> &nbsp;
+        <input type = "radio" name = "operator" value = "-" id = "-input"> <label for="-input">-</label> &nbsp;
+        <input type = "radio" name = "operator" value = "*" id = "*input"> <label for="*input">*</label> &nbsp;
+        <input type = "radio" name = "operator" value = "/" id = "/input"> <label for="/input">/</label>
+        </p>
+        <p>
+        <label>Second Number: <input type = "number" name = "num" id = "num2" step = "any"></label>
+        </p>
+        <p id = "result"></p>
+    </form>
+
+        <script>
+            function combineNumbers(){
+
+                let num1 = parseFloat(document.getElementById("num1").value);
+                let num2 = parseFloat(document.getElementById("num2").value);
+
+                let operator_radio_pointers = document.getElementsByName("operator");
+                let which_operator = null;
+                for(let i=0; i<operator_radio_pointers.length; i++){
+                    if(operator_radio_pointers[i].checked){
+                        which_operator = operator_radio_pointers[i].value;  
+                        break;            
+                    }    
+                }
+
+                if (which_operator == "+") {
+                    document.getElementById("result").textContent = num1 + " " + which_operator + " " + num2 + " = " + (num1 + num2);
+                }
+                else if (which_operator == "-") {
+                    document.getElementById("result").textContent = num1 + " " + which_operator + " " + num2 + " = " + (num1 - num2);
+                }
+                else if (which_operator == "*") {
+                    document.getElementById("result").textContent = num1 + " " + which_operator + " " + num2 + " = " + (num1 * num2);
+                }
+                else if (which_operator == "/") {
+                    document.getElementById("result").textContent = num1 + " " + which_operator + " " + num2 + " = " + (num1 / num2);
+                }
+            }
+
+            document.getElementById("num1").addEventListener("keyup", combineNumbers, false);
+            document.getElementById("num2").addEventListener("keyup", combineNumbers, false);
+            document.getElementById("+input").addEventListener("change", combineNumbers, false);
+            document.getElementById("-input").addEventListener("change", combineNumbers, false);
+            document.getElementById("*input").addEventListener("change", combineNumbers, false);
+            document.getElementById("/input").addEventListener("change", combineNumbers, false);
+            
+        </script>
+        
+</body>
+</html>
