@@ -1,0 +1,38 @@
+# System files
+.DS_Store
+.idea/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+backend/venv/
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Database
+*.db
+*.sqlite3
+
+# Frontend (already has its own .gitignore)
+# We don't need to ignore frontend files here as they have their own .gitignore
+
+# Keep these files
+# main.py and other Python source files should be tracked
+# backend/__init__.py and other module init files should be tracked
+# frontend2 source files should be tracked
