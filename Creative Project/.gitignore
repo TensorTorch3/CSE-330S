@@ -29,6 +29,10 @@ var/
 *.db
 *.sqlite3
 
+# Environment variables
+.env
+.env.*
+
 # Frontend (already has its own .gitignore)
 # We don't need to ignore frontend files here as they have their own .gitignore
 

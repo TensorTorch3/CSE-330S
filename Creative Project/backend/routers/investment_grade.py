@@ -3,11 +3,12 @@ import yfinance as yf
 import numpy as np
 import requests
 from typing import Dict, Any, List, Optional
+from decouple import config
 
 router = APIRouter()
 
 # API configuration
-API_KEY = "d027l8hr01qt2u32gnlgd027l8hr01qt2u32gnm0"
+API_KEY = config('FINNHUB_API_KEY')
 BASE_URL = "https://finnhub.io/api/v1"
 
 # Helper functions
